@@ -1,9 +1,6 @@
 configfile: "config.yaml"
 from datetime import datetime
 #+++++++++++++++++++++++++++++++++++++++ 0 PREPARE WILDCARDS AND TARGET ++++++++++++++++++++++++++++++++++++++++++++
-configfile: "config.yaml"
-from datetime import datetime
-#+++++++++++++++++++++++++++++++++++++++ 0 PREPARE WILDCARDS AND TARGET ++++++++++++++++++++++++++++++++++++++++++++
 # 0.1 Prepare wildcards and variables
 data_dir = config["all"]["data_dir"]
 output_dir = config["all"]["output_dir"]
@@ -17,7 +14,7 @@ rule all:
 # 1.1 Run nf-core MethylArray
 rule MethylArray:
     input:
-        "samplesheet.csv"
+        "../MINT/data/samplesheets/samplesheet_methylation.csv"
     output:
         "results/MethylArray/.done"
     threads: 2
