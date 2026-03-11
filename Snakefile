@@ -19,7 +19,7 @@ rule MethylArray:
         "results/MethylArray/.done"
     threads: 2
     resources:
-        mem_mb=1000
+        mem_mb=10000
     conda:
         "envs/nextflow.yaml"
     log:
@@ -27,7 +27,8 @@ rule MethylArray:
     params:
         genome="hg38",
         profile="singularity",
-        outdir = output_dir + 'MethylArray'
+        outdir = output_dir + 'MethylArray',
+        workdir = "/data/jurriaan/MethylArray/"
     shell:
         """
         nextflow -log {log} run  nf-core/methylarray -r eb5fb7d \
