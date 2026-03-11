@@ -1,5 +1,6 @@
 ---
 all:
+    samplesheet: '../MINT/data/samplesheets/samplesheet_methylation.csv' # specify samplesheet: must contain patient, sample, idat_green and idat_red columns
     data_dir: "~/mnt/neuro-genomic-1-ro/MINT/WES_data/"  # Specify main data directory
     output_dir: "output/"                  # Specify main output directory   
 

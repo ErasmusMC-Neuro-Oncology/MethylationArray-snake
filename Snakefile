@@ -10,38 +10,20 @@ rule all:
     input:
         "results/MethylArray/.done"
 
-#+++++++++++++++++++++++++++++++++++++++++ 1 RUN METHYLARRAY  +++++++++++++++++++++++++++++++++++++++++++++
-# 1.1 Run nf-core MethylArray
-rule MethylArray:
+#+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
+# 1.1 Calculate M-value
+rule Preprocess_idat:
     input:
-        "../MINT/data/samplesheets/samplesheet_methylation.csv"
+        config['all']['samplesheet']
     output:
-        "results/MethylArray/.done"
+        output_dir + "methylation/M_values.Rds"
+    conda:
+        'envs/minfi.yaml'
     threads: 2
     resources:
         mem_mb=10000
-    conda:
-        "envs/nextflow.yaml"
-    log:
-        "logs/MethylArray/nextflow_"+datetime.now().strftime("%Y_%m_%d_%H:%M:%S")+".log"
-    params:
-        genome="hg38",
-        profile="singularity",
-        outdir = output_dir + 'MethylArray',
-        workdir = "/data/jurriaan/MethylArray/"
-    shell:
-        """
-        nextflow -log {log} run  nf-core/methylarray -r eb5fb7d \
-            -profile {params.profile} \
-            --input {input} \
-            --outdir {params.outdir} \
-            --bs_genome_version {params.genome} \
-            --max_cpus {threads} \
-            --max_memory '{resources.mem_mb} MB'
-            -resume 
-            
-        touch {output}
-        """
+    script:
+        "scripts/Preprocess_idat.R"
 
 #-------------------------------------------------------------------------------------------------------------------
 # 1.2

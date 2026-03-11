@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-dplyr
+  - r-tidyr
+  - r-purrr
+  - r-devtools
+  - bioconductor-minfi
+  - bioconductor-IlluminaHumanMethylationEPICmanifest
