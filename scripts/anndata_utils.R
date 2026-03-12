@@ -9,9 +9,9 @@
 # condaenv: R
 # Usage:
 #
-# adata<- read_h5ad('output/methylation/methylation_data.h5ad')
+# adata<- read_h5ad('~/Projects/MINT/MethylationArray-snake/output/methylation/methylation_data.h5ad')
 # adata <- Identify_hv_sites(adata)
-# adata <- Run_PCA(adata)
+# adata <- Run_PCA(adata, layer = 'beta')
 # adata <- Run_TSNE(adata, perplexity = 10)
 #
 # TODO:
@@ -44,6 +44,7 @@ Identify_hv_sites <- function(adata, layer = 'X',top_fraction = 0.2){
     return(adata)
 }
 
+
 # Run PCA 
 Run_PCA <- function(adata,layer = 'X',scaling = T,use_highly_variable=T){
     mat <- get_matrix(adata, layer)
@@ -66,8 +67,13 @@ Run_PCA <- function(adata,layer = 'X',scaling = T,use_highly_variable=T){
 }
 
 # Run TSNE 
-Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores'){
+Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores', use_correlations=T){
     mat <- get_matrix(adata, layer)
+
+    if(use_correlations == T){
+        mat <- cor(t(mat))
+        }
+    # calculate 
     # compute tsne model
     tsne_mod <- Rtsne::Rtsne(mat, perplexity = perplexity)
 
@@ -82,6 +88,18 @@ Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores'){
     return(adata)
 }
 
+
+plot(adata$X[1,],
+     adata$uns[['beta']][1,]
+     )
+
+
+adata
+
+adata$layers[['beta']] %>% dim()
+
+
+plot(adata$X[2,], adata$layers[['beta']][2,])
 
 #-------------------------------------------------------------------------------
 # 2  Plot adata

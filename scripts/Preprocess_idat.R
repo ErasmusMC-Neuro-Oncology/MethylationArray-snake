@@ -36,7 +36,7 @@ if(exists("snakemake")){
     Problematic_input <- snakemake@params[['Problematic_probes']]
     output <- snakemake@output[[1]]
 }else{
-    input <-  '../MINT/data/samplesheets/samplesheet_methylation.csv'
+    input <-  '../data/samplesheet.csv'
     Zhou_input <- '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt'
     CrossReactive_input <- '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt'
     Problematic_input <- '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt'
@@ -51,7 +51,7 @@ samplesheet <- read.delim(input , sep = ',')  %>%
            batch = basename(dirname(idat_red)))
 
 # Read idats
-raw_intensity_data <- read.metharray(samplesheet$idat_basename, force=T)
+raw_intensity_data <- read.metharray(samplesheet$idat_basename, force=T, verbose = T)
 # Add sample IDs
 colnames(raw_intensity_data) <- samplesheet$sample
 

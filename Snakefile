@@ -2,7 +2,6 @@ configfile: "config.yaml"
 from datetime import datetime
 #+++++++++++++++++++++++++++++++++++++++ 0 PREPARE WILDCARDS AND TARGET ++++++++++++++++++++++++++++++++++++++++++++
 # 0.1 Prepare wildcards and variables
-data_dir = config["all"]["data_dir"]
 output_dir = config["all"]["output_dir"]
 #-------------------------------------------------------------------------------------------------------------------
 # 0.2 specify target rules
