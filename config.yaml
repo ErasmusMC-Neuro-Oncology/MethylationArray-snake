@@ -4,6 +4,8 @@ all:
     data_dir: "~/mnt/neuro-genomic-1-ro/MINT/WES_data/"  # Specify main data directory
     output_dir: "output/"                  # Specify main output directory   
 
-
-
+EPIC:
+    Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al
+    CrossReactive : '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt' # Cross-reactive probes Chen/Pidsley/McCartney/Benton papers
+    Problematic: '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt' # Problematic probes for EPIC B5
 
