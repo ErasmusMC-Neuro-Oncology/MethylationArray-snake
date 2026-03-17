@@ -3,19 +3,20 @@ from datetime import datetime
 #+++++++++++++++++++++++++++++++++++++++ 0 PREPARE WILDCARDS AND TARGET ++++++++++++++++++++++++++++++++++++++++++++
 # 0.1 Prepare wildcards and variables
 output_dir = config["all"]["output_dir"]
+datasets = config['all']['datasets']
 #-------------------------------------------------------------------------------------------------------------------
 # 0.2 specify target rules
 rule all:
     input:
-        output_dir + "methylation/methylation_data.h5ad"
+        expand(output_dir + "methylation/methylation_data_{dataset}.h5ad",dataset = datasets)
 
 #+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
 # 1.1 Perform QC, normalization and compute Beta/M-values
 rule Preprocess_idat:
     input:
-        config['all']['samplesheet']
+        lambda wildcards: config['samplesheet'][wildcards.dataset]
     output:
-        output_dir + "methylation/methylation_data.h5ad"
+        output_dir + "methylation/methylation_data_{dataset}.h5ad"
     conda:
         'envs/minfi.yaml'
     params:
@@ -29,4 +30,17 @@ rule Preprocess_idat:
         "scripts/Preprocess_idat.R"
 
 #-------------------------------------------------------------------------------------------------------------------
-# 1.2 
+# 1.2 Perform CNA analysis, use Pai et al normals as a reference
+rule CNA_analysis:
+    input:
+        lambda wildcards: config['samplesheet'][wildcards.dataset],
+    output:
+        output_dir + "CNAs/CNAs_{dataset}.h5ad"
+    conda:
+        'envs/minfi.yaml'
+    threads: 2
+    resources:
+        mem_mb=10000
+    script:
+        "scripts/CNA_analysis.R"
+

@@ -1,8 +1,8 @@
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Preprocess_idat.R
+# CNA_analysis.R
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
-# Preprocess .idat files
+# Perform CNA analysis from methylation arrays
 #
 # Author: Jurriaan Janssen (j.janssen.1@erasmusmc.nl)
 #
@@ -13,7 +13,7 @@
 # 1) 
 #
 # History:
-#  11-03-2026: File creation
+#  17-03-2026: File creation
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # 0.1  Load packages
 #-------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ if(!"IlluminaHumanMethylationEPICanno.ilm10b5.hg38" %in% installed.packages()){d
 suppressMessages(library(dplyr))
 suppressMessages(library(minfi))
 suppressMessages(library(anndata))
+suppressMessages(library(conumee))
 
 # Use correct reticulate environment
 reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
@@ -30,75 +31,105 @@ reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
 # 0.2 Parse command line arguments
 #-------------------------------------------------------------------------------
 if(exists("snakemake")){
-    input<- snakemake@input[[1]]
-    Zhou_input <- snakemake@params[['Zhou_probes']]
-    CrossReactive_input <- snakemake@params[['CrossReactive_probes']]
-    Problematic_input <- snakemake@params[['Problematic_probes']]
-    output <- snakemake@output[[1]]
+    input <- snakemake@input[[1]]
+    output <-  snakemake@output[[1]]
 }else{
     input <- '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
-    Zhou_input <- '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt'
-    CrossReactive_input <- '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt'
-    Problematic_input <- '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt'
-    output <- 'output/methylation/methylation_data_MINT.h5ad'
+    input_reference <- '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
+    output <- ''
 }
 #-------------------------------------------------------------------------------
 # 1.1 Read data
 #-------------------------------------------------------------------------------
-# Read samplesheet
-samplesheet <- read.delim(input , sep = ',')  %>%
+# Read samplesheets
+samplesheet_query <- read.delim(input , sep = ',')  %>%
     mutate(idat_basename = gsub("_Red.idat$", "", idat_red),
-           batch = basename(dirname(idat_red)))
+           group = 'query') 
+
+
+
+# Fetch Pai et al non-tumor samples
+samplesheet_reference <-
+    data.frame(idat_red = list.files('/data/Resources/datasets/Pai/idat/',pattern = 'Red', full.names = T)) %>%
+    mutate(idat_basename = gsub("_Red.idat$", "", idat_red),
+           sample = basename(idat_basename),
+           group = 'reference')
+
+# Combine samplesheets
+samplesheet <- rbind(
+    samplesheet_query %>% select(sample,idat_basename,group),
+    samplesheet_reference %>% select(sample,idat_basename,group))
+
 
 # Read idats
 raw_intensity_data <- read.metharray(samplesheet$idat_basename, force=T, verbose = T)
 
-
-# Read lists of probes to filter
-Zhou_probes <- read.delim(Zhou_input,col.names = 'Probe', header = F)
-CrossReactive_probes <- read.delim(CrossReactive_input)
-Problematic_probes <- read.delim(Problematic_input, col.names = 'Probe')
-Filter_probes <- unique(c(Zhou_probes$Probe, CrossReactive_probes$Probe, Problematic_probes$Probe))
-
-
 #-------------------------------------------------------------------------------
-# 1.2 Fix annotation
+# 2.2 Normalization: Perform Noob normalization
 #-------------------------------------------------------------------------------
-array <- strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[[1]][2]
-if(array == 'EPIC'){
-    annotation(raw_intensity_data) <- c(
-        array = "IlluminaHumanMethylationEPIC",
-        annotation = "ilm10b5.hg38"
-)
-}
-
-#-------------------------------------------------------------------------------
-# 2.1 Quality Control: filter out samples with >5% failed probes
-#-------------------------------------------------------------------------------
-# Add sample IDs
 colnames(raw_intensity_data) <- samplesheet$sample
-
-# Calculate detection P values
-detection_pvalues <-  detectionP(raw_intensity_data)
-
-# Identify samples with more than 5% failed probes (pvalue cutoff 0.01)
-failed_samples <- colMeans(detection_pvalues > 0.01) > 0.05
-if(any(failed_samples)){
-    message("Failed samples: ", paste(colnames(raw_intensity_data)[failed_samples], collapse=", "))
-    # Filter out failed samples
-    raw_intensity_data <- raw_intensity_data[, !failed_samples]
-    detection_pvalues <- detection_pvalues[,!failed_samples]
-}
-
-#-------------------------------------------------------------------------------
-# 2.2 Normalization: Perform Noob normalization 
-#-------------------------------------------------------------------------------
 normalized_data <- preprocessNoob(raw_intensity_data)
+array <- strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[[1]][2]
+#-------------------------------------------------------------------------------
+# 3.1 CNV analysis
+#-------------------------------------------------------------------------------
+# Fetch annotations and subset probes
+anno <- CNV.create_anno(array_type = array)
+anno@probes <- anno@probes[names(anno@probes) %in% names(minfi::getLocations(IlluminaHumanMethylationEPICanno.ilm10b4.hg19::IlluminaHumanMethylationEPICanno.ilm10b4.hg19))]
 
-#-------------------------------------------------------------------------------
-# 2.3 Filter probes
-#-------------------------------------------------------------------------------
-# Keep only probes that succeeded in all samples
+# create CNV object
+CNV_object <- CNV.load(normalized_data)
+
+
+# Estimate CNVs and save objects in list
+tumor_samples <- which(samplesheet$group == 'query')
+cnv_list <- lapply(tumor_samples, function(i) {
+    CNV.fit(CNV_object[i,],CNV_object[samplesheet$group == 'reference',],anno=anno )
+})
+
+
+CNV_MINT20 <- CNV.fit(CNV_object['MINT20_tumor1',],CNV_object[samplesheet$group == 'reference',],anno=anno )
+binned <- CNV.bin(CNV_MINT20)
+segmented <- CNV.segment(binned)
+
+pdf('CNA_profile_MINT20_EPIC.pdf', width = 6 , height = 5)
+CNV.genomeplot(segmented)
+dev.off()
+samplesheet %>% filter(sample == 'MINT20_tumor1')
+# Perform binning and segmentation
+cnv_list <- lapply(cnv_list, CNV.bin)
+cnv_list <- lapply(cnv_list, CNV.segment)
+
+plot()
+CNV.fit(CNV_object[1,],CNV_object[samplesheet$group == 'reference',],anno=anno )
+
+
+normalized_data
+
+
+# Estimate CNVs per sample and store results in list
+tumor_samples <- which(samplesheet$group == 'query')
+cnv_list <- lapply(tumor_samples, function(i) {
+  CNV.fit(
+    CNV_object[, i],
+    reference = CNV_object[samplesheet$group == 'reference',],
+    anno = anno
+  )
+})
+
+# Perform binning
+cnv_list <- lapply(cnv_list, CNV.bin)
+
+# Segment CNVs
+cnv_list <- lapply(cnv_list, CNV.segment)
+
+
+
+
+
+
+
+                                        # Keep only probes that succeeded in all samples
 keep_probes <- rowSums(detection_pvalues < 0.01) == ncol(normalized_data)
 normalized_data <- normalized_data[keep_probes, ]
 

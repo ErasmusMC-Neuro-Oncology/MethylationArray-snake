@@ -1,7 +1,11 @@
 ---
 all:
-    samplesheet: '../data/samplesheet.csv' # specify samplesheet: minimally contains patient, sample, idat_green and idat_red columns
-    output_dir: "output/"                  # Specify main output directory   
+    datasets: ['MINT','Capper'] 
+    output_dir: "output/"    # Specify main output directory   
+
+samplesheet:
+    Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
+    MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
 
 EPIC:
     Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al

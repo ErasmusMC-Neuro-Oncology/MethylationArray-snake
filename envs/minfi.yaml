@@ -9,5 +9,8 @@ dependencies:
   - r-tidyr
   - r-purrr
   - r-devtools
+  - r-matrixstats<1.2.0
   - bioconductor-minfi
+  - bioconductor-conumee
   - bioconductor-IlluminaHumanMethylationEPICmanifest
+  - bioconductor-IlluminaHumanMethylation450kmanifest
