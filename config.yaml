@@ -1,10 +1,11 @@
 ---
 all:
-    datasets: ['MINT','Capper'] 
+    datasets: ['MINT','CapperGlioma']
     output_dir: "output/"    # Specify main output directory   
 
 samplesheet:
     Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
+    CapperGlioma : '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_glioma.csv'
     MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
 
 EPIC:

@@ -35,7 +35,8 @@ rule CNA_analysis:
     input:
         lambda wildcards: config['samplesheet'][wildcards.dataset],
     output:
-        output_dir + "CNAs/CNAs_{dataset}.h5ad"
+        Segmented = output_dir + "CNAs/Segmented_CNAs_{dataset}.txt",
+        Profile_dir = directory(output_dir + 'CNAs/plots/{dataset}')
     conda:
         'envs/minfi.yaml'
     threads: 2
@@ -44,3 +45,21 @@ rule CNA_analysis:
     script:
         "scripts/CNA_analysis.R"
 
+
+#+++++++++++++++++++++++++++++++++++++++++ 2. ESTIMATE TUMOR PURTIY  +++++++++++++++++++++++++++++++++++++++++++++
+# 2.1 Estimate tumor purtiy using RF_purity and InfiniumPurify
+rule Estimate_tumor_purity:
+    input:
+        output_dir + "methylation/methylation_data_{dataset}.h5ad",
+    output:
+        output_dir + "results/Tumor_purities.txt"
+    conda:
+        'envs/minfi.yaml'
+    threads: 2
+    resources:
+        mem_mb=10000
+    script:
+        "scripts/Estimate_tumor_purtiy.R"
+
+
+        

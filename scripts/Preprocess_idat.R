@@ -88,6 +88,7 @@ if(any(failed_samples)){
     # Filter out failed samples
     raw_intensity_data <- raw_intensity_data[, !failed_samples]
     detection_pvalues <- detection_pvalues[,!failed_samples]
+    samplesheet <- samplesheet[!samplesheet$sample %in% failed_samples,]
 }
 
 #-------------------------------------------------------------------------------
@@ -124,10 +125,9 @@ message("Remaining probes after filtering: ", nrow(normalized_data))
 #-------------------------------------------------------------------------------
 # Fetch methylation data
 beta_values <- getBeta(normalized_data)
+raw_beta_values <-  getBeta(raw_intensity_data)
 m_values <- getM(normalized_data)
 
-# Fetch sample metadata
-sample_metadata <- samplesheet %>% select(patient,sample,batch)
 
 # fetch probe metadata
 probe_metadata <- as.data.frame(getAnnotation(normalized_data)) %>%
@@ -140,9 +140,13 @@ probe_metadata <- as.data.frame(getAnnotation(normalized_data)) %>%
 #-------------------------------------------------------------------------------
 adata <- anndata::AnnData(
   X = t(m_values),         
-  obs = sample_metadata,        
+  obs = samplesheet,        
   var = probe_metadata,
-)
+  )
+
+
+
+adata$uns[['beta_raw']] <- data.frame(raw_beta_values) %>% tibble::rownames_to_column()
 adata$layers[['beta']] <- t(beta_values)
 #-------------------------------------------------------------------------------
 # 4.0 Write anndata to .h5ad 

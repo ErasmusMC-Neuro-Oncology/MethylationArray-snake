@@ -24,8 +24,6 @@
 #-------------------------------------------------------------------------------
 suppressMessages(library(anndata))
 suppressMessages(library(dplyr))
-suppressMessages(library(ggplot2))
-suppressMessages(library(ComplexHeatmap))
 
 #-------------------------------------------------------------------------------
 # 1 Modify anndata
@@ -67,9 +65,11 @@ Run_PCA <- function(adata,layer = 'X',scaling = T,use_highly_variable=T){
 }
 
 # Run TSNE 
-Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores', use_correlations=T){
+Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores', use_correlations=T, n_pcs = 500){
     mat <- get_matrix(adata, layer)
 
+    # Select top n pcs
+    mat <- mat[,1:n_pcs] 
     if(use_correlations == T){
         mat <- cor(t(mat))
         }
@@ -79,7 +79,7 @@ Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores', use_correlations=T)
 
     # extract coordinates
     tsne_coordinates <- as.data.frame(tsne_mod$Y)
-    rownames(tsne_coordinates) <- adata$obs_names
+    rownames(tsne_coordinates) <- adata$obs$sample
     colnames(tsne_coordinates) <- c('tSNE1','tSNE2')
     
     # extract scores/loadings and save in adata.uns
@@ -87,19 +87,6 @@ Run_TSNE <- function(adata,perplexity, layer = 'PCA_scores', use_correlations=T)
 
     return(adata)
 }
-
-
-plot(adata$X[1,],
-     adata$uns[['beta']][1,]
-     )
-
-
-adata
-
-adata$layers[['beta']] %>% dim()
-
-
-plot(adata$X[2,], adata$layers[['beta']][2,])
 
 #-------------------------------------------------------------------------------
 # 2  Plot adata
@@ -117,8 +104,13 @@ get_matrix <- function(adata, layer) {
         rownames(mat) <- adata$obs$sample
     } else if (layer %in% names(adata$layers)) {
         mat <- adata$layers[[layer]]
+        rownames(mat) <- adata$obs$sample
     } else if (layer %in% names(adata$uns)) {
         mat <- adata$uns[[layer]]
+        if(layer == 'beta_raw'){
+            rownames(mat) <- mat$rowname
+            mat <- mat[,adata$obs$sample]
+        }
     } else {
         stop(sprintf("Layer '%s' not found in adata$X, adata$layers, or adata$uns", layer))
     }
