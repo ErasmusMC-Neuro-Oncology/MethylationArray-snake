@@ -19,10 +19,11 @@
 #-------------------------------------------------------------------------------
 if(!"IlluminaHumanMethylationEPICmanifest" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
 if(!"IlluminaHumanMethylationEPICanno.ilm10b5.hg38" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
+if(!'conumee2' %in% installed.packages()){ devtools::install_github("hovestadtlab/conumee2", subdir = "conumee2")}
 suppressMessages(library(dplyr))
 suppressMessages(library(minfi))
 suppressMessages(library(anndata))
-suppressMessages(library(conumee))
+suppressMessages(library(conumee2))
 
 # Use correct reticulate environment
 reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
@@ -31,49 +32,27 @@ reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
 # 0.2 Parse command line arguments
 #-------------------------------------------------------------------------------
 if(exists("snakemake")){
-    input <- snakemake@input[[1]]
-    output <-  snakemake@output[['Segmented']]
+    input_query <- snakemake@input[['query']]
+    input_reference <- snakemake@input[['reference']]
+    output_segmented <-  snakemake@output[['Segmented']]
     profile_dir  <-  snakemake@output[['Profile_dir']]
 }else{
-    input <- '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
-    output <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/Segmented_CNAs_MINT.txt'
-    profile_dir <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/plots/MINT/' 
+    input_query <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/methylation/MINT/methylation_object.Rds'
+    input_reference <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/methylation/Pai/methylation_object.Rds'
+    output_segmented <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/MINT/Segmented_CNAs.txt'
+    profile_dir <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/MINT/plots/'
 }
 #-------------------------------------------------------------------------------
 # 1.1 Read data
 #-------------------------------------------------------------------------------
-# Read samplesheets
-samplesheet_query <- read.delim(input , sep = ',')  %>%
-    mutate(idat_basename = gsub("_Red.idat$", "", idat_red),
-           group = 'query') 
+# Read methylation data
+query <- readRDS(input_query)
+reference <- readRDS(input_reference)
+# Combine arrays
+methylation_data <- minfi::combineArrays(query, reference)
 
-# Fetch Pai et al non-tumor samples
-samplesheet_reference <-
-    data.frame(idat_red = list.files('/data/Resources/datasets/Pai/idat/',pattern = 'Red', full.names = T)) %>%
-    mutate(idat_basename = gsub("_Red.idat$", "", idat_red),
-           sample = basename(idat_basename),
-           group = 'reference')
+array <- strsplit(annotation(methylation_data)[1],'IlluminaHumanMethylation')[[1]][2]
 
-# Combine samplesheets
-samplesheet <- rbind(
-    samplesheet_query %>% select(sample,idat_basename,group),
-    samplesheet_reference %>% select(sample,idat_basename,group))
-
-# Read idats
-raw_intensity_data <- read.metharray(samplesheet$idat_basename, force=T, verbose = T)
-
-#-------------------------------------------------------------------------------
-# 2.2 Normalization: Perform Noob normalization
-#-------------------------------------------------------------------------------
-colnames(raw_intensity_data) <- samplesheet$sample
-normalized_data <- preprocessNoob(raw_intensity_data)
-
-# Keep only probes that succeeded in all samples
-detection_pvalues <-  detectionP(raw_intensity_data)
-keep_probes <- rowSums(detection_pvalues < 0.01) == ncol(normalized_data)
-normalized_data <- normalized_data[keep_probes, ]
-
-array <- strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[[1]][2]
 #-------------------------------------------------------------------------------
 # 3.1 CNV analysis
 #-------------------------------------------------------------------------------
@@ -81,23 +60,36 @@ array <- strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[
 data(exclude_regions)
 data(detail_regions)
 anno <- CNV.create_anno(array_type = array, exclude_regions = exclude_regions, detail_regions =detail_regions)
-anno@probes <- anno@probes[names(anno@probes) %in% rownames(normalized_data)]
+anno@probes <- anno@probes[names(anno@probes) %in% rownames(methylation_data)]
 
+
+
+#-------------------------------------------------------------------------------
 # create CNV object
-CNV_object <- CNV.load(normalized_data)
+CNV_object <- CNV.load(methylation_data[,1:ncol(query)])
+CNV_control <- CNV.load(methylation_data[,(ncol(query)+1):ncol(methylation_data)])
 
-# Estimate CNVs and save objects in list
-tumor_samples <- which(samplesheet$group == 'query')
-cnv_list <- lapply(tumor_samples, function(i) {
-    CNV.fit(CNV_object[i,],CNV_object[samplesheet$group == 'reference',],anno=anno )
-})
+# Estimate CNVs 
+CNVs <- CNV.fit(CNV_object, CNV_control , anno)
 
 # Perform binning and segmentation
-cnv_list <- lapply(cnv_list, CNV.bin)
-cnv_list <- lapply(cnv_list, CNV.segment)
+CNVs <- CNV.bin(CNVs)
+CNVs <- CNV.segment(CNVs)
+
+
 
 #-------------------------------------------------------------------------------
-# 3.2 Create CNV export
+# 3.2 Plot profiles
 #-------------------------------------------------------------------------------
 
+CNV.genomeplot(CNVs[1])
+
+
+
+
+#-------------------------------------------------------------------------------
+# 3.3 Create CNV export
+#-------------------------------------------------------------------------------
+
+CNV.write(CNVs, what = "segments", file = output_segmented )
 

@@ -8,7 +8,7 @@ datasets = config['all']['datasets']
 # 0.2 specify target rules
 rule all:
     input:
-        expand(output_dir + "methylation/methylation_data_{dataset}.h5ad",dataset = datasets)
+        expand(output_dir + "methylation/{dataset}/methylation_data.h5ad",dataset = datasets)
 
 #+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
 # 1.1 Perform QC, normalization and compute Beta/M-values
@@ -16,7 +16,8 @@ rule Preprocess_idat:
     input:
         lambda wildcards: config['samplesheet'][wildcards.dataset]
     output:
-        output_dir + "methylation/methylation_data_{dataset}.h5ad"
+        Mset = output_dir + "methylation/{dataset}/methylation_object.Rds",
+        adata = output_dir + "methylation/{dataset}/methylation_data.h5ad"
     conda:
         'envs/minfi.yaml'
     params:
@@ -33,10 +34,11 @@ rule Preprocess_idat:
 # 1.2 Perform CNA analysis, use Pai et al normals as a reference
 rule CNA_analysis:
     input:
-        lambda wildcards: config['samplesheet'][wildcards.dataset],
+        query = output_dir + "methylation/MINT/methylation_object.Rds",
+        reference =  output_dir + "methylation/Pai/methylation_object.Rds",
     output:
-        Segmented = output_dir + "CNAs/Segmented_CNAs_{dataset}.txt",
-        Profile_dir = directory(output_dir + 'CNAs/plots/{dataset}')
+        Segmented = output_dir + "CNAs/MINT/Segmented_CNAs_MINT.txt",
+        Profile_dir = directory(output_dir + 'CNAs/MINT/plots/')
     conda:
         'envs/minfi.yaml'
     threads: 2

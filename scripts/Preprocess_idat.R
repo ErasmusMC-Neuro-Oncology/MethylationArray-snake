@@ -34,7 +34,9 @@ if(exists("snakemake")){
     Zhou_input <- snakemake@params[['Zhou_probes']]
     CrossReactive_input <- snakemake@params[['CrossReactive_probes']]
     Problematic_input <- snakemake@params[['Problematic_probes']]
-    output <- snakemake@output[[1]]
+    output_adata <- snakemake@output[['adata']]
+    output_Mset <- snakemake@output[['Mset']]
+
 }else{
     input <- '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
     Zhou_input <- '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt'
@@ -109,28 +111,28 @@ normalized_data <- normalized_data[
   ]
 
 # Add genomic coordinates
-normalized_data <- mapToGenome(normalized_data)
+mapped_data <- mapToGenome(normalized_data)
 
 # Remove SNP probes
-normalized_data <- dropLociWithSnps(normalized_data)
+mapped_data <- dropLociWithSnps(mapped_data)
 
 # remove sex chromosomes
-annotation_df <- getAnnotation(normalized_data)
-normalized_data <- normalized_data[!(annotation_df$chr %in% c("chrX","chrY")), ]
+annotation_df <- getAnnotation(mapped_data)
+mapped_data <- mapped_data[!(annotation_df$chr %in% c("chrX","chrY")), ]
 
-message("Remaining probes after filtering: ", nrow(normalized_data))
+message("Remaining probes after filtering: ", nrow(mapped_data))
 
 #-------------------------------------------------------------------------------
 # 2.5 Extract data
 #-------------------------------------------------------------------------------
 # Fetch methylation data
-beta_values <- getBeta(normalized_data)
+beta_values <- getBeta(mapped_data)
 raw_beta_values <-  getBeta(raw_intensity_data)
-m_values <- getM(normalized_data)
+m_values <- getM(mapped_data)
 
 
 # fetch probe metadata
-probe_metadata <- as.data.frame(getAnnotation(normalized_data)) %>%
+probe_metadata <- as.data.frame(getAnnotation(mapped_data)) %>%
     select(-c(ProbeSeqA,Forward_Sequence,SourceSeq)) %>%
     # Replace NA with empty string from compatibility
     mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
@@ -151,4 +153,5 @@ adata$layers[['beta']] <- t(beta_values)
 #-------------------------------------------------------------------------------
 # 4.0 Write anndata to .h5ad 
 #-------------------------------------------------------------------------------
-write_h5ad(adata, output)
+write_h5ad(adata, output_adata)
+saveRDS(normalized_data, output_Mset)

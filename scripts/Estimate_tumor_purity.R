@@ -6,13 +6,9 @@
 #
 # Author: Jurriaan Janssen (j.janssen.1@erasmusmc.nl)
 #
-# condaenv: R
+# condaenv: methylation
 # Usage:
 #
-# adata<- read_h5ad('~/Projects/MINT/MethylationArray-snake/output/methylation/methylation_data.h5ad')
-# adata <- Identify_hv_sites(adata)
-# adata <- Run_PCA(adata, layer = 'beta')
-# adata <- Run_TSNE(adata, perplexity = 10)
 #
 # TODO:
 # 1) 
