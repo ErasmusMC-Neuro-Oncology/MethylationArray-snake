@@ -34,6 +34,7 @@ if(exists("snakemake")){
     Zhou_input <- snakemake@params[['Zhou_probes']]
     CrossReactive_input <- snakemake@params[['CrossReactive_probes']]
     Problematic_input <- snakemake@params[['Problematic_probes']]
+    normalization <- snakemake@wildcards[['norm']]
     output_adata <- snakemake@output[['adata']]
     output_Mset <- snakemake@output[['Mset']]
 
@@ -42,6 +43,7 @@ if(exists("snakemake")){
     Zhou_input <- '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt'
     CrossReactive_input <- '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt'
     Problematic_input <- '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt'
+    normalization <- 'func'
     output <- 'output/methylation/methylation_data_MINT.h5ad'
 }
 #-------------------------------------------------------------------------------
@@ -51,7 +53,6 @@ if(exists("snakemake")){
 samplesheet <- read.delim(input , sep = ',')  %>%
     mutate(idat_basename = gsub("_Red.idat$", "", idat_red),
            batch = basename(dirname(idat_red)))
-
 # Read idats
 raw_intensity_data <- read.metharray(samplesheet$idat_basename, force=T, verbose = T)
 
@@ -94,10 +95,13 @@ if(any(failed_samples)){
 }
 
 #-------------------------------------------------------------------------------
-# 2.2 Normalization: Perform Noob normalization 
+# 2.2 Normalization: Perform Noob normalization 4
 #-------------------------------------------------------------------------------
-normalized_data <- preprocessNoob(raw_intensity_data)
-
+if(normalization == 'func'){
+    normalized_data <- preprocessFunnorm(raw_intensity_data)    
+}else{
+    normalized_data <- preprocessNoob(raw_intensity_data)
+}
 #-------------------------------------------------------------------------------
 # 2.3 Filter probes
 #-------------------------------------------------------------------------------

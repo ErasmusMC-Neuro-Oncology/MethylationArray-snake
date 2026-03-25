@@ -53,6 +53,9 @@ methylation_data <- minfi::combineArrays(query, reference)
 
 array <- strsplit(annotation(methylation_data)[1],'IlluminaHumanMethylation')[[1]][2]
 
+if(array == 'EPIC'){
+    array <- c("EPIC", "EPICv2")
+}
 #-------------------------------------------------------------------------------
 # 3.1 CNV analysis
 #-------------------------------------------------------------------------------
@@ -60,7 +63,10 @@ array <- strsplit(annotation(methylation_data)[1],'IlluminaHumanMethylation')[[1
 data(exclude_regions)
 data(detail_regions)
 anno <- CNV.create_anno(array_type = array, exclude_regions = exclude_regions, detail_regions =detail_regions)
+
+# match probes
 anno@probes <- anno@probes[names(anno@probes) %in% rownames(methylation_data)]
+methylation_data <- methylation_data[ rownames(methylation_data) %in% names(anno@probes) ]
 
 
 
@@ -72,24 +78,34 @@ CNV_control <- CNV.load(methylation_data[,(ncol(query)+1):ncol(methylation_data)
 # Estimate CNVs 
 CNVs <- CNV.fit(CNV_object, CNV_control , anno)
 
-# Perform binning and segmentation
+# Perform binning 
 CNVs <- CNV.bin(CNVs)
-CNVs <- CNV.segment(CNVs)
 
+# Remove bins with NAs
+valid_bins <- names(CNVs@bin$ratio[[1]])[!is.na(CNVs@bin$ratio[[1]])]
+for (j in seq_along(CNVs@bin$ratio)) {
+  CNVs@bin$ratio[[j]]    <- CNVs@bin$ratio[[j]][valid_bins]
+  CNVs@bin$variance[[j]] <- CNVs@bin$variance[[j]][valid_bins]
+}
+CNVs@anno@bins <- CNVs@anno@bins[valid_bins]
+
+# Run segmentation
+CNVs <- CNV.detail(CNVs)
+CNVs <- CNV.segment(CNVs, verbose = 1)
 
 
 #-------------------------------------------------------------------------------
 # 3.2 Plot profiles
 #-------------------------------------------------------------------------------
-
-CNV.genomeplot(CNVs[1])
-
-
+for(i in seq(1,length(names(CNVs)))){
+    sample <- names(CNVs)[1]
+    pdf(paste0(profile_dir,sample,'.pdf') , width = 6 , height = 5 )
+    CNV.genomeplot(CNVs[i])
+    dev.off()
+}
 
 
 #-------------------------------------------------------------------------------
 # 3.3 Create CNV export
 #-------------------------------------------------------------------------------
-
-CNV.write(CNVs, what = "segments", file = output_segmented )
-
+write.table(dplyr::bind_rows(CNV.write(CNVs, what = "segments")), file= output_segmented,quote=F,row.names = F)

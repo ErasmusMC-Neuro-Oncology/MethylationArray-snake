@@ -4,11 +4,12 @@ from datetime import datetime
 # 0.1 Prepare wildcards and variables
 output_dir = config["all"]["output_dir"]
 datasets = config['all']['datasets']
+normalizations = config['all']['normalizations']
 #-------------------------------------------------------------------------------------------------------------------
 # 0.2 specify target rules
 rule all:
     input:
-        expand(output_dir + "methylation/{dataset}/methylation_data.h5ad",dataset = datasets)
+        expand(output_dir + "methylation/{dataset}/methylation_data_{norm}.h5ad",dataset = datasets, norm = normalizations)
 
 #+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
 # 1.1 Perform QC, normalization and compute Beta/M-values
@@ -16,8 +17,8 @@ rule Preprocess_idat:
     input:
         lambda wildcards: config['samplesheet'][wildcards.dataset]
     output:
-        Mset = output_dir + "methylation/{dataset}/methylation_object.Rds",
-        adata = output_dir + "methylation/{dataset}/methylation_data.h5ad"
+        Mset = output_dir + "methylation/{dataset}/methylation_object_{norm}.Rds",
+        adata = output_dir + "methylation/{dataset}/methylation_data_{norm}.h5ad"
     conda:
         'envs/minfi.yaml'
     params:
@@ -34,8 +35,8 @@ rule Preprocess_idat:
 # 1.2 Perform CNA analysis, use Pai et al normals as a reference
 rule CNA_analysis:
     input:
-        query = output_dir + "methylation/MINT/methylation_object.Rds",
-        reference =  output_dir + "methylation/Pai/methylation_object.Rds",
+        query = output_dir + "methylation/MINT/methylation_object_noob.Rds",
+        reference =  output_dir + "methylation/Pai/methylation_object_noob.Rds",
     output:
         Segmented = output_dir + "CNAs/MINT/Segmented_CNAs_MINT.txt",
         Profile_dir = directory(output_dir + 'CNAs/MINT/plots/')
@@ -52,7 +53,7 @@ rule CNA_analysis:
 # 2.1 Estimate tumor purtiy using RF_purity and InfiniumPurify
 rule Estimate_tumor_purity:
     input:
-        output_dir + "methylation/methylation_data_{dataset}.h5ad",
+        output_dir + "methylation/{dataset}/methylation_data_noob.h5ad"
     output:
         output_dir + "results/Tumor_purities.txt"
     conda:

@@ -1,13 +1,15 @@
 ---
 all:
-    datasets: ['MINT','Pai']
+    datasets: ['MINT','Pai', 'Lucas', 'CapperGlioma']
     output_dir: "output/"    # Specify main output directory   
+    normalizations : ['func','noob']
 
 samplesheet:
     Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
     Pai: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_Pai.csv'
     CapperGlioma : '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_glioma.csv'
     MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
+    Lucas : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_Lucas.csv'
 
 EPIC:
     Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al
