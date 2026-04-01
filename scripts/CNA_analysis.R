@@ -98,12 +98,11 @@ CNVs <- CNV.segment(CNVs, verbose = 1)
 # 3.2 Plot profiles
 #-------------------------------------------------------------------------------
 for(i in seq(1,length(names(CNVs)))){
-    sample <- names(CNVs)[1]
+    sample <- names(CNVs)[i]
     pdf(paste0(profile_dir,sample,'.pdf') , width = 6 , height = 5 )
     CNV.genomeplot(CNVs[i])
     dev.off()
 }
-
 
 #-------------------------------------------------------------------------------
 # 3.3 Create CNV export

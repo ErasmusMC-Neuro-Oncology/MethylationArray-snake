@@ -6,7 +6,7 @@
 #
 # Author: Jurriaan Janssen (j.janssen.1@erasmusmc.nl)
 #
-# condaenv:  methylation
+# condaenv: /home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/.snakemake/conda/b27dbe81
 # Usage: 
 #
 # TODO:
@@ -63,7 +63,6 @@ CrossReactive_probes <- read.delim(CrossReactive_input)
 Problematic_probes <- read.delim(Problematic_input, col.names = 'Probe')
 Filter_probes <- unique(c(Zhou_probes$Probe, CrossReactive_probes$Probe, Problematic_probes$Probe))
 
-
 #-------------------------------------------------------------------------------
 # 1.2 Fix annotation
 #-------------------------------------------------------------------------------
@@ -84,14 +83,16 @@ colnames(raw_intensity_data) <- samplesheet$sample
 # Calculate detection P values
 detection_pvalues <-  detectionP(raw_intensity_data)
 
-# Identify samples with more than 5% failed probes (pvalue cutoff 0.01)
-failed_samples <- colMeans(detection_pvalues > 0.01) > 0.05
+# Identify samples with more than 10% failed probes (pvalue cutoff 0.01)
+failed_samples <- colMeans(detection_pvalues > 0.01) > 0.1
+
+
 if(any(failed_samples)){
     message("Failed samples: ", paste(colnames(raw_intensity_data)[failed_samples], collapse=", "))
     # Filter out failed samples
     raw_intensity_data <- raw_intensity_data[, !failed_samples]
     detection_pvalues <- detection_pvalues[,!failed_samples]
-    samplesheet <- samplesheet[!samplesheet$sample %in% failed_samples,]
+    samplesheet <- samplesheet[!failed_samples,]
 }
 
 #-------------------------------------------------------------------------------
@@ -144,6 +145,7 @@ probe_metadata <- as.data.frame(getAnnotation(mapped_data)) %>%
 #-------------------------------------------------------------------------------
 # 3.0 Create AnnData object
 #-------------------------------------------------------------------------------
+print(samplesheet)
 adata <- anndata::AnnData(
   X = t(m_values),         
   obs = samplesheet,        

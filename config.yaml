@@ -2,7 +2,7 @@
 all:
     datasets: ['MINT','Pai', 'Lucas', 'CapperGlioma']
     output_dir: "output/"    # Specify main output directory   
-    normalizations : ['func','noob']
+    normalizations : ['noob'] # func or noob
 
 samplesheet:
     Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'

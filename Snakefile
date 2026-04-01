@@ -9,7 +9,10 @@ normalizations = config['all']['normalizations']
 # 0.2 specify target rules
 rule all:
     input:
-        expand(output_dir + "methylation/{dataset}/methylation_data_{norm}.h5ad",dataset = datasets, norm = normalizations)
+        expand(output_dir + "methylation/{dataset}/methylation_data_{norm}.h5ad",dataset = datasets, norm = normalizations),
+        output_dir + "CNAs/MINT/Segmented_CNAs_MINT.txt",
+        output_dir + "results/Tumor_purities.txt"
+        
 
 #+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
 # 1.1 Perform QC, normalization and compute Beta/M-values
@@ -53,7 +56,7 @@ rule CNA_analysis:
 # 2.1 Estimate tumor purtiy using RF_purity and InfiniumPurify
 rule Estimate_tumor_purity:
     input:
-        output_dir + "methylation/{dataset}/methylation_data_noob.h5ad"
+        output_dir + "methylation/MINT/methylation_data_noob.h5ad"
     output:
         output_dir + "results/Tumor_purities.txt"
     conda:
@@ -62,7 +65,27 @@ rule Estimate_tumor_purity:
     resources:
         mem_mb=10000
     script:
-        "scripts/Estimate_tumor_purtiy.R"
+        "scripts/Estimate_tumor_purity.R"
+
+
+
+#+++++++++++++++++++++++++++++++++++++++++ 3. CLASSIFICATION  +++++++++++++++++++++++++++++++++++++++++++++
+# 3.1 Classify 
+rule Estimate_tumor_purity:
+    input:
+        output_dir + "methylation/MINT/methylation_data_noob.h5ad"
+    output:
+        output_dir + "results/Tumor_purities.txt"
+    conda:
+        'envs/minfi.yaml'
+    threads: 2
+    resources:
+        mem_mb=10000
+    script:
+        "scripts/Estimate_tumor_purity.R"
+
+
+
 
 
         
