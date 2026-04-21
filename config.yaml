@@ -1,18 +1,11 @@
 ---
 all:
-    datasets: ['MINT','Pai', 'Lucas', 'CapperGlioma']
-    output_dir: "output/"    # Specify main output directory   
+    samplesheet: "/trinity/home/r115502/SSLOWGRADE/output/Methylation/samplesheets/Samplesheet_Methylation.csv"
+    output_dir : "/trinity/home/r115502/SSLOWGRADE/output/Methylation/" # specify output dir
     normalizations : ['noob'] # func or noob
 
-samplesheet:
-    Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
-    Pai: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_Pai.csv'
-    CapperGlioma : '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_glioma.csv'
-    MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
-    Lucas : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_Lucas.csv'
-
 EPIC:
-    Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al
-    CrossReactive : '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt' # Cross-reactive probes Chen/Pidsley/McCartney/Benton papers
-    Problematic: '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt' # Problematic probes for EPIC B5
+    Zhou: '/trinity/home/r115502/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al
+    CrossReactive : '/trinity/home/r115502/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt' # Cross-reactive probes Chen/Pidsley/McCartney/Benton papers
+    Problematic: '/trinity/home/r115502/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt' # Problematic probes for EPIC B5
 
