@@ -75,4 +75,6 @@ RFpurify_purity <- data.frame(
 #-------------------------------------------------------------------------------
 # 3.1 Join an write to file
 #-------------------------------------------------------------------------------
-InfiniumPurify_purity %>% left_join(RFpurify_purity) %>% write.table(output, sep = '\t',quote = F, row.names = F)
+InfiniumPurify_purity %>%
+    left_join(RFpurify_purity) %>%
+    write.table(output, sep = '\t', quote = F, row.names = F)
