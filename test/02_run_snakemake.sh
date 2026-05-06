@@ -6,7 +6,10 @@ PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
 
 cd "${PROJECT_DIR}"
 
+source ~/.zshrc
+conda activate snakemake
+
 snakemake \
-    --configfile test/config.yaml \
     --use-conda \
-    --cores 2
+    --cores 2 \
+    'output/CNAs/test/Segmented_CNAs_test.txt'

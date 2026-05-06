@@ -12,6 +12,9 @@ cna_reference = config['all']['cna_reference']
 query_datasets = [d for d in datasets if d not in reference_datasets]
 download_datasets = config['all'].get('download_datasets', [])
 
+wildcard_constraints:
+    dataset = "[^/]+"
+
 def get_samplesheet(wildcards):
     if wildcards.dataset in download_datasets:
         checkpoints.download_idat.get(dataset=wildcards.dataset)

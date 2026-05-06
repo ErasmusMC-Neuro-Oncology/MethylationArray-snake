@@ -13,6 +13,7 @@ samplesheet:
     NonTumorReference: 'config/samplesheet__non_tumor_reference__epic.csv'
     Lucas : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_Lucas.csv'
     MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
+    test : 'test/samplesheet.csv'
 
 EPIC:
     Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al

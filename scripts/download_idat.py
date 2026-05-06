@@ -23,8 +23,13 @@ with open(samplesheet_path, newline="") as f:
 def download_and_extract(url, dest_path):
     url = html.unescape(url)
     tmp_path = dest_path + ".gz"
-    urllib.request.urlretrieve(url, tmp_path)
-    time.sleep(1)# ensure the webserver doeszn't exceed rate limits and avoid getting blocked
+    try:
+        urllib.request.urlretrieve(url, tmp_path)
+    except (urllib.error.URLError, urllib.error.ContentTooShortError):
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
+    time.sleep(1)
     with gzip.open(tmp_path, "rb") as f_in, open(dest_path, "wb") as f_out:
         shutil.copyfileobj(f_in, f_out)
     os.remove(tmp_path)
@@ -38,12 +43,14 @@ for row in rows:
     red_filename = os.path.basename(row["idat_red"]).replace(".gz", "")
     red_local = os.path.join(out_dir, red_filename)
     if not os.path.exists(red_local):
+        print(f"Downloading: {red_filename}", flush=True)
         download_and_extract(row["url_red"], red_local)
     row["idat_red"] = red_local
 
     grn_filename = red_filename.replace("_Red.idat", "_Grn.idat")
     grn_local = os.path.join(out_dir, grn_filename)
     if not os.path.exists(grn_local):
+        print(f"Downloading: {grn_filename}", flush=True)
         download_and_extract(row["url_grn"], grn_local)
 
     if "sample" not in fieldnames:
