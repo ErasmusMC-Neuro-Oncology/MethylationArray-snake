@@ -81,6 +81,8 @@ rule CNA_analysis:
     threads: 2
     resources:
         mem_mb=10000
+    log:
+        output_dir + "CNAs/{dataset}/CNA_analysis.log"
     script:
         "scripts/CNA_analysis.R"
 
