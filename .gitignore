@@ -17,5 +17,8 @@ output/
 .Rhistory*
 .nextflow*
 samplesheet.csv
+test/idat/
+test/samplesheet.csv
+test/output/
 *.pdf
 *.Rds

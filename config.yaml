@@ -1,15 +1,19 @@
 ---
 all:
-    datasets: ['MINT','Pai', 'Lucas', 'CapperGlioma']
-    output_dir: "output/"    # Specify main output directory   
+    datasets: ['MINT','NonTumorReference', 'Lucas', 'CapperGlioma']
+    output_dir: "output/"    # Specify main output directory
     normalizations : ['noob'] # func or noob
+    reference_datasets: ['NonTumorReference', 'CapperGlioma']  # excluded as CNA query; used as reference
+    cna_reference: 'NonTumorReference'            # dataset used as CNA reference panel
+    download_datasets: ['NonTumorReference']      # datasets fetched from URLs in samplesheet
 
 samplesheet:
-    Capper: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
-    Pai: '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_Pai.csv'
+    Capper:        '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet.csv'
     CapperGlioma : '/home/jurriaan/Projects/Capper_Methylation/data/samplesheet_glioma.csv'
-    MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
+    NonTumorReference: 'config/samplesheet__non_tumor_reference__epic.csv'
     Lucas : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_Lucas.csv'
+    MINT : '/home/jurriaan/Projects/MINT/data/samplesheets/samplesheet_methylation.csv'
+    test : 'test/samplesheet.csv'
 
 EPIC:
     Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al

@@ -15,11 +15,9 @@
 # History:
 #  17-03-2026: File creation
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# 0.1  Load packages
+# 0.1  Setup and load packages
 #-------------------------------------------------------------------------------
-if(!"IlluminaHumanMethylationEPICmanifest" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
-if(!"IlluminaHumanMethylationEPICanno.ilm10b5.hg38" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
-if(!'conumee2' %in% installed.packages()){ devtools::install_github("hovestadtlab/conumee2", subdir = "conumee2")}
+source('scripts/install_github_packages.R')
 suppressMessages(library(dplyr))
 suppressMessages(library(minfi))
 suppressMessages(library(anndata))
@@ -36,12 +34,20 @@ if(exists("snakemake")){
     input_reference <- snakemake@input[['reference']]
     output_segmented <-  snakemake@output[['Segmented']]
     profile_dir  <-  snakemake@output[['Profile_dir']]
-}else{
+    log_file <- snakemake@log[[1]]
+} else {
     input_query <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/methylation/MINT/methylation_object.Rds'
     input_reference <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/methylation/Pai/methylation_object.Rds'
     output_segmented <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/MINT/Segmented_CNAs.txt'
     profile_dir <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/CNAs/MINT/plots/'
+    log_file <- NULL
 }
+
+if(!is.null(log_file)){
+    sink(log_file, split=TRUE)
+}
+
+
 #-------------------------------------------------------------------------------
 # 1.1 Read data
 #-------------------------------------------------------------------------------
@@ -56,6 +62,8 @@ array <- strsplit(annotation(methylation_data)[1],'IlluminaHumanMethylation')[[1
 if(array == 'EPIC'){
     array <- c("EPIC", "EPICv2")
 }
+
+
 #-------------------------------------------------------------------------------
 # 3.1 CNV analysis
 #-------------------------------------------------------------------------------
@@ -84,6 +92,7 @@ CNVs <- CNV.bin(CNVs)
 # Remove bins with NAs
 valid_bins <- names(CNVs@bin$ratio[[1]])[!is.na(CNVs@bin$ratio[[1]])]
 for (j in seq_along(CNVs@bin$ratio)) {
+  print(paste0("j:", j))
   CNVs@bin$ratio[[j]]    <- CNVs@bin$ratio[[j]][valid_bins]
   CNVs@bin$variance[[j]] <- CNVs@bin$variance[[j]][valid_bins]
 }
@@ -97,14 +106,25 @@ CNVs <- CNV.segment(CNVs, verbose = 1)
 #-------------------------------------------------------------------------------
 # 3.2 Plot profiles
 #-------------------------------------------------------------------------------
-for(i in seq(1,length(names(CNVs)))){
-    sample <- names(CNVs)[i]
-    pdf(paste0(profile_dir,sample,'.pdf') , width = 6 , height = 5 )
-    CNV.genomeplot(CNVs[i])
-    dev.off()
-}
+dir.create(profile_dir, showWarnings = FALSE, recursive = TRUE)
+pbapply::pblapply(seq_along(names(CNVs)), function(i) {
+  sample <- names(CNVs)[i]
+
+  # genomeplot
+  fn <- paste0(profile_dir, "/", sample, '_conumee2_genomeplot.pdf')
+  pdf(fn, width = 10, height = 5)
+  CNV.genomeplot(CNVs[i])
+  dev.off()
+
+  # they planned to develop a summaryplot, but is commented out
+  #https://github.com/hovestadtlab/conumee2/blob/main/conumee2/R/output.R#L563C4-L563C19
+
+  # CNV.heatmap seems to be implemented?
+})
 
 #-------------------------------------------------------------------------------
 # 3.3 Create CNV export
 #-------------------------------------------------------------------------------
-write.table(dplyr::bind_rows(CNV.write(CNVs, what = "segments")), file= output_segmented,quote=F,row.names = F)
+CNV.write(CNVs, what = "segments") |>
+  dplyr::bind_rows() |>
+  write.table(file = output_segmented, quote = FALSE, row.names = FALSE)

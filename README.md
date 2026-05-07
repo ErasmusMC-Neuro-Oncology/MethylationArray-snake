@@ -69,6 +69,30 @@ snakemake --cores 1 --use-conda
 
 ---
 
+## Running the Test
+
+A small test dataset (one sample from GEO: GSM8997664) is included under `test/`.
+
+**1. Download test data and generate samplesheet:**
+
+```bash
+bash test/01_download_and_prepare.sh
+```
+
+This downloads the IDAT files from GEO, extracts them to `test/idat/`, and writes `test/samplesheet.csv`.
+
+**2. Run the pipeline on the test data:**
+
+```bash
+bash test/02_run_snakemake.sh
+```
+
+This runs Snakemake with `test/config.yaml` instead of the default `config.yaml`. Output is written to `test/output/`.
+
+> **Note:** the EPIC probe filter paths in `test/config.yaml` still point to `/data/Resources/EPIC/manifest/`. Adjust these if your manifest files are located elsewhere.
+
+---
+
 ## Main Output Files
 
 ### Normalized Methylation Data

@@ -16,10 +16,9 @@
 # History:
 #  18-03-2026: File creation
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# 0.1  Load packages
+# 0.1  Setup and load packages
 #-------------------------------------------------------------------------------
-if(!"RFpurify" %in% installed.packages()){devtools::install_github("mwsill/RFpurify")}
-if(!"InfiniumPurify" %in% installed.packages()){devtools::install_github("Xiaoqizheng/InfiniumPurify")}
+source('scripts/install_github_packages.R')
 suppressMessages(library(anndata))
 suppressMessages(library(dplyr))
 suppressMessages(library(RFpurify))
@@ -75,4 +74,6 @@ RFpurify_purity <- data.frame(
 #-------------------------------------------------------------------------------
 # 3.1 Join an write to file
 #-------------------------------------------------------------------------------
-InfiniumPurify_purity %>% left_join(RFpurify_purity) %>% write.table(output, sep = '\t',quote = F, row.names = F)
+InfiniumPurify_purity %>%
+    left_join(RFpurify_purity) %>%
+    write.table(output, sep = '\t', quote = F, row.names = F)

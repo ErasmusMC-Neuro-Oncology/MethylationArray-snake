@@ -1,0 +1,17 @@
+---
+all:
+    datasets: ['test']
+    output_dir: "output/"
+    normalizations: ['noob']
+    reference_datasets: ['NonTumorReference']
+    cna_reference: 'NonTumorReference'
+    download_datasets: []
+
+samplesheet:
+    test: 'test/samplesheet.csv'
+    NonTumorReference: 'config/samplesheet__non_tumor_reference__epic.csv'
+
+EPIC:
+    Zhou: '/data/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt'
+    CrossReactive: '/data/Resources/EPIC/manifest/AppendixE_CrossReactiveProbes_EPICv1.txt'
+    Problematic: '/data/Resources/EPIC/manifest/AppendixF_ProblematicProbes_EPICv1-b5.txt'
