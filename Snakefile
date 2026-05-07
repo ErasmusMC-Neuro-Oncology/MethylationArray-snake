@@ -23,8 +23,9 @@ def get_samplesheet(wildcards):
 
 def get_idat_inputs(wildcards):
     if wildcards.dataset in download_datasets:
-        idat_dir = checkpoints.download_idat.get(dataset=wildcards.dataset).output[0]
-        return _glob.glob(os.path.join(idat_dir, "*.idat"))
+        checkpoints.download_idat.get(dataset=wildcards.dataset)
+        idat_dir = output_dir + "idat/{}/".format(wildcards.dataset)
+        return sorted(_glob.glob(os.path.join(idat_dir, "*.idat")))
     return []
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -42,7 +43,8 @@ checkpoint download_idat:
     input:
         lambda wildcards: config['samplesheet'][wildcards.dataset]
     output:
-        directory(output_dir + "idat/{dataset}/")
+        directory(output_dir + "idat/{dataset}/"),
+        output_dir + "idat/{dataset}/.download_complete"
     script:
         "scripts/download_idat.py"
 
@@ -72,7 +74,7 @@ rule Preprocess_idat:
 rule CNA_analysis:
     input:
         query = output_dir + "methylation/{dataset}/methylation_data_noob.Rds",
-        reference = output_dir + "methylation/" + cna_reference + "/methylation_data_noob.Rds",
+        reference = output_dir + "methylation/" + cna_reference + "/methylation_data_noob.Rds"
     output:
         Segmented = output_dir + "CNAs/{dataset}/Segmented_CNAs_{dataset}.txt",
         Profile_dir = directory(output_dir + "CNAs/{dataset}/plots/")

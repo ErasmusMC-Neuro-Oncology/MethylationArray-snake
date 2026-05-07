@@ -15,11 +15,9 @@
 # History:
 #  17-03-2026: File creation
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# 0.1  Load packages
+# 0.1  Setup and load packages
 #-------------------------------------------------------------------------------
-if(!"IlluminaHumanMethylationEPICmanifest" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
-if(!"IlluminaHumanMethylationEPICanno.ilm10b5.hg38" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
-if(!'conumee2' %in% installed.packages()){ devtools::install_github("hovestadtlab/conumee2", subdir = "conumee2")}
+source('scripts/install_github_packages.R')
 suppressMessages(library(dplyr))
 suppressMessages(library(minfi))
 suppressMessages(library(anndata))
@@ -111,10 +109,17 @@ CNVs <- CNV.segment(CNVs, verbose = 1)
 dir.create(profile_dir, showWarnings = FALSE, recursive = TRUE)
 pbapply::pblapply(seq_along(names(CNVs)), function(i) {
   sample <- names(CNVs)[i]
-  fn <- paste0(profile_dir, "/", sample, '.pdf')
+
+  # genomeplot
+  fn <- paste0(profile_dir, "/", sample, '_conumee2_genomeplot.pdf')
   pdf(fn, width = 10, height = 5)
   CNV.genomeplot(CNVs[i])
   dev.off()
+
+  # they planned to develop a summaryplot, but is commented out
+  #https://github.com/hovestadtlab/conumee2/blob/main/conumee2/R/output.R#L563C4-L563C19
+
+  # CNV.heatmap seems to be implemented?
 })
 
 #-------------------------------------------------------------------------------

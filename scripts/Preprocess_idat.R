@@ -15,10 +15,9 @@
 # History:
 #  11-03-2026: File creation
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# 0.1  Load packages
+# 0.1  Setup and load packages
 #-------------------------------------------------------------------------------
-if(!"IlluminaHumanMethylationEPICmanifest" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
-if(!"IlluminaHumanMethylationEPICanno.ilm10b5.hg38" %in% installed.packages()){devtools::install_github("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")}
+source('scripts/install_github_packages.R')
 suppressMessages(library(dplyr))
 suppressMessages(library(minfi))
 suppressMessages(library(anndata))

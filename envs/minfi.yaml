@@ -2,6 +2,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
+  # Core
   - anndata
   - pip
   - r-anndata
@@ -9,14 +10,50 @@ dependencies:
   - r-tidyr
   - r-purrr
   - r-devtools
-  - r-pbapply
-  - r-matrixstats<1.2.0
-  - r-kernsmooth
-  - r-plotly
   - r-data.table
+
+  # Minfi
   - bioconductor-minfi
   - bioconductor-nullranges
-  - bioconductor-conumee
   - bioconductor-rnbeads
   - bioconductor-IlluminaHumanMethylationEPICmanifest
   - bioconductor-IlluminaHumanMethylation450kmanifest
+  - r-matrixstats<1.2.0
+  - r-kernsmooth
+  - r-pbapply
+
+  # CNA analysis
+  - bioconductor-dnacopy
+  - bioconductor-limma
+  - bioconductor-genomicalignments
+  - bioconductor-genomicfeatures
+  - bioconductor-annotationdbi
+  - bioconductor-biomart
+  - bioconductor-genefilter
+  - r-mclust
+  - r-kernlab
+  - r-reshape2
+  - r-ks
+  - r-fields
+  - r-gplots
+  - r-ggridges
+  - r-pracma
+  - r-mvtnorm
+  - r-locfit
+  - r-catools
+  - r-httr
+  - r-curl
+  - r-openssl
+  - r-xml2
+  - r-jsonlite
+  - r-base64
+  - bioconductor-rhdf5
+  - bioconductor-rhdf5filters
+  - bioconductor-biocfilecache
+
+  # Utilities
+  - r-magrittr
+  - r-stringr
+  - r-xtable
+  - r-png
+  - r-plotly
