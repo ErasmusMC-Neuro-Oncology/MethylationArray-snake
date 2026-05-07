@@ -18,6 +18,27 @@ The main goal is to generate high-quality normalized methylation data together w
 
 ## Workflow Summary
 
+### Pipeline Overview
+
+```
+INPUTS                   PROCESS                 OUTPUTS
+─────────────────────────────────────────────────────────────────
+Raw IDAT files   ───→   Download (if needed)
+                         │
+Samplesheet CSV  ─────→  │
+                         ├──→  QC & Normalization
+Reference data   ──────→ │
+Probe filters    ──────→ │
+                         ├──→  Extract β/M values  ──→  methylation_data.h5ad
+                         │                             + methylation_data.Rds
+                         │
+                         ├──→  CNA Analysis  ─────────→  Segmented_CNAs.txt
+                         │                             + Genome plots (PDF)
+                         │
+                         └──→  Tumor Purity  ────────→  Tumor_purities.txt
+                              (InfiniumPurify, RFpurify)
+```
+
 ### 1. Sample Preparation
 
 Input samplesheets are defined in `config.yaml` for each dataset. This script has to be edited by the user.
@@ -106,7 +127,7 @@ Primary output containing processed methylation data for downstream analysis.
 ### R Methylation Objects
 
 ```text
-methylation/{dataset}/methylation_object_{norm}.Rds
+methylation/{dataset}/methylation_data_{norm}.Rds
 ```
 
 Contains normalized minfi objects for R-based downstream analyses.
