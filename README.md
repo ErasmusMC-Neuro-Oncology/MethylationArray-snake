@@ -24,6 +24,8 @@ The main goal is to generate high-quality normalized methylation data together w
 INPUTS                   PROCESS                 OUTPUTS
 ─────────────────────────────────────────────────────────────────
 Raw IDAT files   ───→   Download (if needed)
+(reference; non          |
+ tumor)                  |
                          │
 Samplesheet CSV  ─────→  │
                          ├──→  QC & Normalization
