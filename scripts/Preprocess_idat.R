@@ -66,13 +66,14 @@ Filter_probes <- unique(c(Zhou_probes$Probe, CrossReactive_probes$Probe, Problem
 #-------------------------------------------------------------------------------
 # 1.2 Fix annotation
 #-------------------------------------------------------------------------------
-array <- strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[[1]][2]
-if(array == 'EPIC'){
-    annotation(raw_intensity_data) <- c(
-        array = "IlluminaHumanMethylationEPIC",
-        annotation = "ilm10b5.hg38"
-)
-}
+
+#array <- 'EPIC'#strsplit(annotation(raw_intensity_data)[1],'IlluminaHumanMethylation')[[1]][2]
+#if(array == 'EPIC'){
+#    annotation(raw_intensity_data) <- c(
+#        array = "IlluminaHumanMethylationEPIC",
+#        annotation = "ilm10b5.hg38"
+#)
+#}
 
 #-------------------------------------------------------------------------------
 # 2.1 Quality Control: filter out samples with >5% failed probes
@@ -96,13 +97,9 @@ if(any(failed_samples)){
 }
 
 #-------------------------------------------------------------------------------
-# 2.2 Normalization: Perform Noob normalization 4
+# 2.2 Normalization: Perform Noob normalization
 #-------------------------------------------------------------------------------
-if(normalization == 'func'){
-    normalized_data <- preprocessFunnorm(raw_intensity_data)    
-}else{
-    normalized_data <- preprocessNoob(raw_intensity_data)
-}
+normalized_data <- preprocessNoob(raw_intensity_data)
 #-------------------------------------------------------------------------------
 # 2.3 Filter probes
 #-------------------------------------------------------------------------------

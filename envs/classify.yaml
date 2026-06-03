@@ -1,0 +1,13 @@
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - bioconductor-minfi
+  - bioconductor-limma
+  - bioconductor-illuminahumanmethylationepicmanifest
+  - bioconductor-illuminahumanmethylationepicanno.ilm10b4.hg19
+  - bioconductor-illuminahumanmethylationepicv2manifest
+  - bioconductor-illuminahumanmethylationepicv2anno.20a1.hg38
+  - r-biocmanager
+  - r-randomforest

@@ -25,7 +25,6 @@ suppressMessages(library(dplyr))
 suppressMessages(library(RFpurify))
 suppressMessages(library(InfiniumPurify))
 
-source('scripts/anndata_utils.R')
 # Use correct reticulate environment
 reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
 #-------------------------------------------------------------------------------
@@ -33,7 +32,7 @@ reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
 #-------------------------------------------------------------------------------
 if(exists("snakemake")){
     input<- snakemake@input[[1]]
-    tumor_type <- snakemake@params[['tumor_type']]
+    utils <- snakemake@params[['utils']]
     output <- snakemake@output[[1]]
 }else{
     input <- '/home/jurriaan/Projects/Capper_Methylation/MethylationArray-snake/output/methylation/methylation_data_MINT.h5ad'
@@ -43,6 +42,7 @@ if(exists("snakemake")){
 # 1.1 Read data
 #-------------------------------------------------------------------------------
 # Read adata
+source(utils)
 adata <- read_h5ad(input)
 
 #-------------------------------------------------------------------------------
@@ -61,6 +61,7 @@ InfiniumPurify_purity <- data.frame(
 #-------------------------------------------------------------------------------
 # fetch beta matrix
 beta <- get_matrix(adata, 'beta_raw')
+
 # fetch feature matrix and impute missing values
 featuremat_ABSOLUTE <- beta[match(rownames(RFpurify_ABSOLUTE$importance), rownames(beta)), , drop = FALSE]
 featuremat_ESTIMATE <- beta[match(rownames(RFpurify_ESTIMATE$importance), rownames(beta)), , drop = FALSE]

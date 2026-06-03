@@ -8,8 +8,7 @@ output_dir = config["all"]["output_dir"]
 # 0.2 specify target rules
 rule all:
     input:
-        output_dir + "methylation_object.Rds",
-        output_dir + "CNAs/Segmented_CNAs.txt"
+        output_dir + 'sampledata/SampleData_Methylation.txt'
 
 #+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
 # 1.1 Perform QC, normalization and compute Beta/M-values
@@ -27,7 +26,7 @@ rule Preprocess_idat:
         Problematic_probes = config['EPIC']['Problematic']
     threads: 2
     resources:
-        mem_mb=10000,
+        mem_mb=100000,
         gpu = 0
     script:
         "scripts/Preprocess_idat.R"
@@ -40,8 +39,8 @@ rule CNA_analysis:
     output:
         Segmented = output_dir + "CNAs/Segmented_CNAs.txt",
         Profile_dir = directory(output_dir + 'CNAs/plots/')
-    #params:
-    #    reference =  output_dir + "Pai/methylation_object.Rds",
+    params:
+        reference =  config['all']['reference'],
     conda:
         'envs/minfi.yaml'
     threads: 2
@@ -51,6 +50,7 @@ rule CNA_analysis:
         "scripts/CNA_analysis.R"
 
 
+
 #+++++++++++++++++++++++++++++++++++++++++ 2. ESTIMATE TUMOR PURTIY  +++++++++++++++++++++++++++++++++++++++++++++
 # 2.1 Estimate tumor purtiy using RF_purity and InfiniumPurify
 rule Estimate_tumor_purity:
@@ -58,6 +58,8 @@ rule Estimate_tumor_purity:
         output_dir + "methylation_data.h5ad"
     output:
         output_dir + "results/Tumor_purities.txt"
+    params:
+        utils = config['all']['utils']
     conda:
         'envs/minfi.yaml'
     threads: 2
@@ -69,10 +71,38 @@ rule Estimate_tumor_purity:
 
 
 #+++++++++++++++++++++++++++++++++++++++++ 3. CLASSIFICATION  +++++++++++++++++++++++++++++++++++++++++++++
-# 3.1 Classify 
-
-
-
-
+# 3.1 Classify using pretrained model
+rule Classify_samples:
+    input:
+        config['all']['samplesheet']
+    output:
+        output_dir + "results/Methylation_Classes.txt"
+    params:
+        classifier = config['classify']['classifier'],
+        ba_coef = config['classify']['ba_coef'],
+        material = config['classify']['material'],
+        Rpreprocess = config['classify']['preprocess_script'],
+        filter_dir = config['classify']['filter_dir'],
+        CNA_data = config['classify']['CNA_data']
+    conda:
+        'envs/classify.yaml'
+    resources:
+        mem_mb=10000
+    script:
+        "scripts/Classify_samples.R"
 
         
+#+++++++++++++++++++++++++++++++++++++++++ 4. CREATE SAMPLE DATA  +++++++++++++++++++++++++++++++++++++++++++++
+# 3.1 Classify using pretrained model
+
+rule Create_SampleData:
+    input:
+        Classes = output_dir + "results/Methylation_Classes.txt",
+        purities = output_dir + "results/Tumor_purities.txt"
+    output:
+        output_dir + 'sampledata/SampleData_Methylation.txt'
+    conda:
+        "envs/R.yaml"
+    script:
+        'scripts/Create_SampleData.R'
+

@@ -33,7 +33,7 @@ reticulate::use_condaenv(Sys.getenv("CONDA_PREFIX"), required = TRUE)
 #-------------------------------------------------------------------------------
 if(exists("snakemake")){
     input_query <- snakemake@input[['query']]
-    input_reference <- snakemake@input[['reference']]
+    input_reference <- snakemake@params[['reference']]
     output_segmented <-  snakemake@output[['Segmented']]
     profile_dir  <-  snakemake@output[['Profile_dir']]
 }else{

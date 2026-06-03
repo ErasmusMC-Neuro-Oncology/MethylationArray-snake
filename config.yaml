@@ -2,7 +2,17 @@
 all:
     samplesheet: "/trinity/home/r115502/SSLOWGRADE/output/Methylation/samplesheets/Samplesheet_Methylation.csv"
     output_dir : "/trinity/home/r115502/SSLOWGRADE/output/Methylation/" # specify output dir
-    normalizations : ['noob'] # func or noob
+    reference: '/trinity/home/r115502/Resources/datasets/Pai/methylation_objects.Rds'
+    utils: '/trinity/home/r115502/SSLOWGRADE/sslowgrade/workflows/MethylationArray-snake/scripts/anndata_utils.R'
+
+classify:
+    classifier: '/trinity/home/r115502/MNP_classifier/output/rf.pred.RData'
+    ba_coef: '/trinity/home/r115502/MNP_classifier/output/ba.coef.RData'
+    material: 'FFPE'
+    preprocess_script: '/trinity/home/r115502/MNP_classifier/scripts/MNPprocessIDAT_functions.R'
+    CNA_data: '/trinity/home/r115502/MNP_classifier/filter/CNV_data/'
+    filter_dir: '/trinity/home/r115502/MNP_classifier/filter/'
+    
 
 EPIC:
     Zhou: '/trinity/home/r115502/Resources/EPIC/manifest/AppendixD_Zhou_et_al_MASKgeneral_list.txt' # cross-reactive probes to filter out described by Zhou et al

@@ -9,7 +9,7 @@ dependencies:
   - r-tidyr
   - r-purrr
   - r-devtools
-  - r-matrixstats<1.2.0
+  - r-matrixstats
   - r-kernsmooth
   - r-plotly
   - r-data.table
