@@ -12,6 +12,7 @@ classify:
     preprocess_script: '/trinity/home/r115502/MNP_classifier/scripts/MNPprocessIDAT_functions.R'
     CNA_data: '/trinity/home/r115502/MNP_classifier/filter/CNV_data/'
     filter_dir: '/trinity/home/r115502/MNP_classifier/filter/'
+    CGC: '/trinity/home/r115502/Resources/Continuous_Grading_Classifier/assets/CGC-Psi_predictor_probe_based_lm_v1.0_epicv2.Rds'
     
 
 EPIC:

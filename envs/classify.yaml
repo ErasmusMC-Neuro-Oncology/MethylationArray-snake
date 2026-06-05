@@ -11,3 +11,4 @@ dependencies:
   - bioconductor-illuminahumanmethylationepicv2anno.20a1.hg38
   - r-biocmanager
   - r-randomforest
+  - r-glmnet

@@ -79,6 +79,7 @@ rule Classify_samples:
         output_dir + "results/Methylation_Classes.txt"
     params:
         classifier = config['classify']['classifier'],
+        CGC_classifier = config['classify']['CGC']
         ba_coef = config['classify']['ba_coef'],
         material = config['classify']['material'],
         Rpreprocess = config['classify']['preprocess_script'],

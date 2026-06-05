@@ -28,6 +28,7 @@ library(limma)
 if(exists("snakemake")){
     input<- snakemake@input[[1]]
     classifier <- snakemake@params[['classifier']]
+    CGC_classifier <- snakemake@params[['CGC_classifier']]
     ba_coef <- snakemake@params[['ba_coef']]
     material <- snakemake@params[['material']]
     Rpreprocess <- snakemake@params[['Rpreprocess']]
@@ -38,6 +39,7 @@ if(exists("snakemake")){
 }else{
     input <- '/home/jurriaan/mnt/BIGR_home/SSLOWGRADE/output/Methylation/samplesheets/Samplesheet_Methylation.csv'
     classifier <- '/home/jurriaan/mnt/BIGR_home/MNP_classifier/output/rf.pred.RData'
+    CGC_classifier <- '/home/jurriaan/mnt/BIGR_home/Resources/Continuous_Grading_Classifier/assets/CGC-Psi_predictor_probe_based_lm_v1.0_epicv2.Rds'
     ba_coef <- '/home/jurriaan/mnt/BIGR_home/MNP_classifier/output/ba.coef.RData'
     material <- 'FFPE'
     Rpreprocess <- '/home/jurriaan/mnt/BIGR_home/MNP_classifier/scripts/MNPprocessIDAT_functions.R'
@@ -119,7 +121,6 @@ load(file.path(ba_coef))                               # methy.coef, unmethy.coe
 cat("Inladen IDAT-bestanden...\n")
 RGset <- read.metharray(idat_basename, verbose = TRUE, force = TRUE)
 
-convertArray(RGset, outType = 'IlluminaHumanMethylation450k')
 
 if(RGset@annotation[[1]] == 'Unknown'){
     library(IlluminaHumanMethylationEPICv2manifest)    
@@ -128,7 +129,7 @@ if(RGset@annotation[[1]] == 'Unknown'){
         annotation = "ilm10b4.hg19")
     }
 
-    
+
 cat("MNPpreprocessIllumina normalisatie...\n")
 Mset <- MNPpreprocessIllumina(RGset)
 
@@ -189,9 +190,7 @@ dim(betas_sample)
 # ---------------------------------------------------------------------------
 # 7. Tumorclassificatie
 # ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# 7. Tumorclassificatie
-# ---------------------------------------------------------------------------
+
 cat("\n--- Tumorclassificatie ---\n")
 
 classifier_probes <- rownames(rf.pred$importance)
@@ -214,9 +213,42 @@ rf_votes <- predict(rf.pred, newdata = pred_mat, type = "vote")
 rf_class  <- colnames(rf_votes)[apply(rf_votes, 1, which.max)]
 rf_score  <- apply(rf_votes, 1, max)   # confidence score 0-1
 
+# ---------------------------------------------------------------------------
+# 8. Predict CGC
+# ---------------------------------------------------------------------------
+annotation(RGset)['annotation'] <- "20a1.hg38"
 
-write.table(data.frame(sample = samplesheet$patient,
-                       class  = rf_class,
-                       score  = round(rf_score, 3)),
-            output, sep = '\t', row.names = F, quote = F)
+proc <- preprocessNoob(RGset, offset = 0, dyeCorr = T, verbose = TRUE, dyeMethod="single")  #dyeMethod="reference"
 
+mvalue <- ratioConvert(proc, what = "M") |>
+  assays() |>
+  purrr::pluck('listData') |>
+  purrr::pluck("M") |>
+  data.table::as.data.table(keep.rownames = "probe_id")
+#-------------------------------------------------------------------------------
+# 2.2 Predict CGC
+#-------------------------------------------------------------------------------
+CGC_classifier <- readRDS(CGC_classifier)
+
+# acquire the exact same m-values
+data <- mvalue |> 
+  tibble::column_to_rownames('probe_id') |> 
+  t() |> 
+  as.data.frame() |> 
+  dplyr::select(rownames(CGC_classifier$beta)) |> 
+  as.matrix()
+
+
+# apply lm to the data
+CGC <- glmnet::predict.glmnet(CGC_classifier, data)
+
+
+#-------------------------------------------------------------------------------
+# 3.1 Join an write to file
+#-------------------------------------------------------------------------------
+data.frame(sample = samplesheet$patient,
+           class  = rf_class,
+           score  = round(rf_score, 3),
+           CGC = CGC[,1]) %>%
+    write.table(
+        output, sep = '\t', row.names = F, quote = F)
