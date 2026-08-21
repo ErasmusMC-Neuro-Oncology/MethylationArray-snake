@@ -52,7 +52,7 @@ if(exists("snakemake")){
 # 1. Read data
 # ---------------------------------------------------------------------------
 samplesheet <- read.delim(input , sep = ',') 
-
+head(samplesheet)
 idat_basename <- gsub('_Grn.idat','',samplesheet$idat_green)
 
 

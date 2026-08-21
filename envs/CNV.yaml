@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-dplyr
+  - r-ggplot2
+  - r-anndata
+  - r-reticulate

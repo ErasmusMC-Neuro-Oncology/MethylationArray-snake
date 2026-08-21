@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-dplyr
+  - r-tibble
+  - bioconductor-sesame
+  - bioconductor-sesamedata
+  - bioconductor-biocparallel
+  - r-anndata
+  - r-reticulate
+  - r-rhpcblasctl
+  - python=3.11
+  - openblas=0.3.3
+  - numpy
+  - anndata<0.11
+  - bioconductor-dnacopy
