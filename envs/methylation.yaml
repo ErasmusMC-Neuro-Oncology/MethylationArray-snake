@@ -1,0 +1,28 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconductor-sesame
+  - bioconductor-sesamedata
+  - bioconductor-minfi
+  - bioconductor-biocparallel
+  - bioconductor-sva
+  - bioconductor-limma
+  - bioconductor-methylclock
+  - r-dplyr
+  - r-stringr
+  - r-readr
+  - r-data.table
+  - r-ggplot2
+  - r-rcolorbrewer
+  - r-rtsne
+  - r-matrixstats
+  - r-anndata
+  - r-reticulate
+  - python=3.11
+  - anndata >=0.10,<0.11
+  - pandas <3
+  - h5py
+  - r-biocmanager
+  - c-compiler
+  - cxx-compiler

@@ -3,94 +3,63 @@ from datetime import datetime
 #+++++++++++++++++++++++++++++++++++++++ 0 PREPARE WILDCARDS AND TARGET ++++++++++++++++++++++++++++++++++++++++++++
 # 0.1 Prepare wildcards and variables
 output_dir = config["all"]["output_dir"]
-
+data_dir =  config["all"]["data_dir"]
 #-------------------------------------------------------------------------------------------------------------------
 # 0.2 specify target rules
 rule all:
     input:
         output_dir + 'sampledata/SampleData_Methylation.txt'
 
-#+++++++++++++++++++++++++++++++++++++++++ 1. PREPROCESS IDAT FILES  +++++++++++++++++++++++++++++++++++++++++++++
-# 1.1 Perform QC, normalization and compute Beta/M-values
-rule Preprocess_idat:
+#+++++++++++++++++++++++++++++++++ 1. HARMONIZE + BATCH CORRECT ++++++++++++++++++++++++++++++++++
+rule Preprocess_methylation:
     input:
-        config['all']['samplesheet']
+        samplesheet_mint = config['all']['samplesheet']
     output:
-        Mset = output_dir + "methylation_object.Rds",
-        adata = output_dir + "methylation_data.h5ad"
-    conda:
-        'envs/minfi.yaml'
+        adata = output_dir + "harmonized/methylation_harmonized.h5ad"
     params:
+        out_dir = output_dir + 'harmonized',
+        idat_dir_Capper = config['harmonize']['idat_dir_Capper'],
+        idat_dir_Lucas = config['harmonize']['idat_dir_Lucas'],
+        samplesheet_Capper = config['harmonize']['samplesheet_Capper'],
+        samplesheet_Sturm = config['harmonize']['samplesheet_Sturm'],
+        samplesheet_Lucas = config['harmonize']['samplesheet_Lucas'],
+        classes_csv = config['harmonize']['classes_csv'],
         Zhou_probes = config['EPIC']['Zhou'],
         CrossReactive_probes = config['EPIC']['CrossReactive'],
-        Problematic_probes = config['EPIC']['Problematic']
-    threads: 2
-    resources:
-        mem_mb=100000,
-        gpu = 0
-    script:
-        "scripts/Preprocess_idat.R"
-
-#-------------------------------------------------------------------------------------------------------------------
-# 1.2 Perform CNA analysis, use Pai et al normals as a reference
-rule CNA_analysis:
-    input:
-        query = output_dir + "methylation_object.Rds",
-    output:
-        Segmented = output_dir + "CNAs/Segmented_CNAs.txt",
-        Profile_dir = directory(output_dir + 'CNAs/plots/')
-    params:
-        reference =  config['all']['reference'],
+        Problematic_probes = config['EPIC']['Problematic'],
     conda:
-        'envs/minfi.yaml'
-    threads: 2
+        "envs/methylation.yaml"
+    threads: 20
     resources:
-        mem_mb=10000
+        mem_mb=400000,
+        runtime='24h',
+        gpu=0
     script:
-        "scripts/CNA_analysis.R"
+        "scripts/Preprocess_methylation.R"
 
-
-
-#+++++++++++++++++++++++++++++++++++++++++ 2. ESTIMATE TUMOR PURTIY  +++++++++++++++++++++++++++++++++++++++++++++
-# 2.1 Estimate tumor purtiy using RF_purity and InfiniumPurify
-rule Estimate_tumor_purity:
+#++++++++++++++++++++++++++++++++++++ 2. PCA / t-SNE EMBEDDINGS ++++++++++++++++++++++++++++++++++
+rule Embeddings_methylation:
     input:
-        output_dir + "methylation_data.h5ad"
+        adata = output_dir + "harmonized/methylation_harmonized.h5ad"
     output:
-        output_dir + "results/Tumor_purities.txt"
+        embeddings_all  = output_dir + 'embeddings/Embeddings_and_subtypes.csv',
+        embeddings_selected = output_dir + 'embeddings/Embeddings_and_subtypes_selected.csv',
+        tsne_family= output_dir + 'embeddings/tSNE_AllGliomas_w_batch_correction.pdf',
+        tsne_zoom = output_dir + 'embeddings/tSNE_AllGliomas_zoom_tsne_-20_0.pdf',
+        tsne_pathology = output_dir + 'embeddings/tSNE_AllGliomas_Histological_subtype.pdf',
+        pca_before = output_dir + 'embeddings/PCA_before_ComBat.png',
+        pca_after = output_dir + 'embeddings/PCA_after_ComBat.png'
     params:
-        utils = config['all']['utils']
+        out_dir           = output_dir + 'harmonized',
     conda:
-        'envs/minfi.yaml'
-    threads: 2
+        "envs/methylation_embeddings.yaml"
+    threads: 16
     resources:
-        mem_mb=10000
+        mem_mb=200000,
+        runtime='8h',
+        gpu=0
     script:
-        "scripts/Estimate_tumor_purity.R"
-
-
-
-#+++++++++++++++++++++++++++++++++++++++++ 3. CLASSIFICATION  +++++++++++++++++++++++++++++++++++++++++++++
-# 3.1 Classify using pretrained model
-rule Classify_samples:
-    input:
-        config['all']['samplesheet']
-    output:
-        output_dir + "results/Methylation_Classes.txt"
-    params:
-        classifier = config['classify']['classifier'],
-        ba_coef = config['classify']['ba_coef'],
-        material = config['classify']['material'],
-        Rpreprocess = config['classify']['preprocess_script'],
-        filter_dir = config['classify']['filter_dir'],
-        CNA_data = config['classify']['CNA_data']
-    conda:
-        'envs/classify.yaml'
-    resources:
-        mem_mb=10000
-    script:
-        "scripts/Classify_samples.R"
-
+        "scripts/Embeddings_Methylation.R"
         
 #+++++++++++++++++++++++++++++++++++++++++ 4. CREATE SAMPLE DATA  +++++++++++++++++++++++++++++++++++++++++++++
 # 3.1 Classify using pretrained model

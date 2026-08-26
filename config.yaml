@@ -1,9 +1,9 @@
 ---
 all:
-    samplesheet: "/trinity/home/r115502/SSLOWGRADE/output/Methylation/samplesheets/Samplesheet_Methylation.csv"
-    output_dir : "/trinity/home/r115502/SSLOWGRADE/output/Methylation/" # specify output dir
+    samplesheet: "/trinity/home/r115502/MINT/output/Methylation/samplesheets/Samplesheet_Methylation.csv"
+    output_dir : "/trinity/home/r115502/MINT/output/Methylation/" # specify output dir
     reference: '/trinity/home/r115502/Resources/datasets/Pai/methylation_objects.Rds'
-    utils: '/trinity/home/r115502/SSLOWGRADE/sslowgrade/workflows/MethylationArray-snake/scripts/anndata_utils.R'
+    utils: '/trinity/home/r115502/MINT/MINT/workflows/MethylationArray-snake/scripts/anndata_utils.R'
 
 classify:
     classifier: '/trinity/home/r115502/MNP_classifier/output/rf.pred.RData'
